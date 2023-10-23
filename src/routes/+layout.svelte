@@ -13,7 +13,7 @@
 		>
 	</svelte:fragment>
 	<svelte:fragment slot="sidebarLeft" />
-	<!-- (sidebarRight) -->
+	<!-- (sidebarRight) - ->
 	<!-- (pageHeader) -->
 	<!-- Router Slot -->
 	<slot />

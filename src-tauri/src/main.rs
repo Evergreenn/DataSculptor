@@ -1,52 +1,22 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
+mod csv_extractor;
 
-use std::collections::HashMap;
+use csv_extractor::Data;
 
 fn main() {
-    // tauri::Builder::default()
-    //     .run(tauri::generate_context!())
-    //     .expect("error while running tauri application");
-    let _ = process_file("/home/yehra/Downloads/convertcsv.csv");
+    tauri::Builder::default()
+        .invoke_handler(tauri::generate_handler![extract_data_from_csv,])
+        .run(tauri::generate_context!())
+        .expect("error while running tauri application")
+    // let _ = extract_data_from_csv(
+    // "/home/guillaume/Downloads/2023-10-11-981_segments_export_1697032083.csv",
+    // );
+    // let _ = extract_data_from_csv("/home/yehra/Downloads/convertcsv.csv");
 }
 
-fn process_file(file: &str) -> Result<(HashMap<&str, Vec<HashMap<usize, &str>>>), std::io::Error> {
-    use std::fs::File;
-    use std::io::prelude::*;
-    use std::io::BufReader;
-
-    let file = File::open(file).expect("file not found");
-    let mut reader = BufReader::new(file).lines();
-    let mut string_buf: Vec<String> = Vec::new();
-
-    while let Some(line) = reader.next() {
-        let line = line.unwrap();
-        string_buf.push(line);
-    }
-    let header = string_buf[0].clone();
-    let mut doc = string_buf[1..].to_vec();
-    let mut doc_indexed: Vec<HashMap<usize, &str>> = vec![];
-
-    for full_line in doc.iter_mut() {
-        let e = full_line
-            .split(",")
-            .enumerate()
-            .collect::<HashMap<usize, &str>>();
-
-        doc_indexed.push(e.to_owned());
-    }
-
-    let header = header
-        .split(",")
-        .enumerate()
-        .collect::<HashMap<usize, &str>>();
-
-    // println!("header: {:?}", header);
-    // println!("{:#?}", doc_indexed);
-
-    let mut result = HashMap::new();
-    result.insert("header", vec![header]);
-    result.insert("data", doc_indexed.clone());
-
-    Ok(result)
+#[tauri::command]
+async fn extract_data_from_csv(file: &str) -> Result<Data, String> {
+    let data = Data::new().extract_data_from_csv(file)?;
+    Ok(data)
 }
